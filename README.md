@@ -50,7 +50,7 @@ curl -s http://127.0.0.1:8000/v1/chat/completions -H 'Content-Type: application/
 `serve.sh` is NVIDIA's published DGX Spark command with two additions. Without them, the server does not start on one GB10:
 
 - `--max-model-len 262144`. The 1M default sizes encoder and cache buffers that push host memory below 5 GiB during startup.
-- `--limit-mm-per-prompt '{"video":0,"image":1}'`. Video input is disabled; images still work. The video encoder memory profile is what exhausts memory.
+- `--limit-mm-per-prompt '{"video":0,"image":999}'`. Video input is disabled. Images are uncapped (vLLM's default of 999 per prompt); a 12-image prompt was verified. The video encoder memory profile is what exhausts memory.
 
 Also recommended: during weight loading, the 70 GB of shards fill page cache and can push the host into swap. `bench/watchdog.py` evicts clean model-file pages every 2 s until the server is healthy, and kills the container if available memory drops below 5 GiB or swap grows by more than 8 GiB.
 

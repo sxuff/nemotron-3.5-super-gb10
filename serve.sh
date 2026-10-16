@@ -2,7 +2,7 @@
 # Nemotron 3.5 Super VL 120B-A12B NVFP4 + LiLiCorr (k=7) on one DGX Spark / GB10.
 # NVIDIA's DGX Spark quick-start, with two changes required to start on one GB10:
 #   --max-model-len 262144                      (1M default exhausts host memory at startup)
-#   --limit-mm-per-prompt '{"video":0,"image":1}' (video encoder profiling exhausts host memory)
+#   --limit-mm-per-prompt video=0                (video encoder profiling exhausts host memory; images uncapped)
 set -euo pipefail
 MODELS=${MODELS:-$HOME/models}
 TARGET=${TARGET:-NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4}
@@ -25,7 +25,7 @@ exec docker run --rm --name "$NAME" --gpus all --ipc=host --shm-size 16g \
   --gpu-memory-utilization 0.75 \
   --max-num-batched-tokens 8192 \
   --max-model-len 262144 \
-  --limit-mm-per-prompt '{"video":0,"image":1}' \
+  --limit-mm-per-prompt "{\"video\":0,\"image\":${MAX_IMAGES:-999}}" \
   --speculative_config.model /models/$DRAFT \
   --speculative_config.method dflash \
   --speculative_config.num_speculative_tokens 7 \
@@ -36,4 +36,5 @@ exec docker run --rm --name "$NAME" --gpus all --ipc=host --shm-size 16g \
   --enable-mamba-shared-prefix-checkpoint \
   --block-size 64 --prefix-match-unit 64 \
   --enable-auto-tool-choice --tool-call-parser qwen3_coder \
-  --reasoning-parser nemotron_v3
+  --reasoning-parser nemotron_v3 \
+  ${EXTRA_ARGS:-}
